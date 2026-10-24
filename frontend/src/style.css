@@ -1,0 +1,257 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, ::before, ::after {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  body {
+    background-color: #FFFFFF;
+    color: #000000;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 64px;
+    line-height: 1.0;
+    font-weight: 400;
+  }
+
+  h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 48px;
+    line-height: 1.05;
+    font-weight: 400;
+  }
+
+  h3 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 32px;
+    line-height: 1.1;
+    font-weight: 400;
+  }
+
+  h4 {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+
+  a {
+    color: #0000FF;
+    text-decoration: underline;
+  }
+
+  a:hover {
+    color: #000000;
+  }
+}
+
+@layer components {
+  /* RawBlock Buttons */
+  .btn-raw {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    transition: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    text-decoration: none;
+    border-radius: 0px;
+  }
+
+  .btn-primary {
+    @apply btn-raw;
+    background-color: #000000;
+    color: #FFFFFF;
+    border: 3px solid #000000;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-color: #000000;
+  }
+  .btn-primary:active:not(:disabled) {
+    background-color: #000000;
+    color: #FFFFFF;
+    border: 5px solid #000000;
+  }
+
+  .btn-secondary {
+    @apply btn-raw;
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 3px solid #000000;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #000000;
+    color: #FFFFFF;
+  }
+  .btn-secondary:active:not(:disabled) {
+    border: 5px solid #000000;
+  }
+
+  .btn-destructive {
+    @apply btn-raw;
+    background-color: #FF0000;
+    color: #FFFFFF;
+    border: 3px solid #000000;
+  }
+  .btn-destructive:hover:not(:disabled) {
+    background-color: #000000;
+    color: #FF0000;
+  }
+  .btn-destructive:active:not(:disabled) {
+    border: 5px solid #000000;
+  }
+
+  .btn-ghost {
+    @apply btn-raw;
+    background-color: transparent;
+    color: #000000;
+    border: none;
+    text-decoration: underline;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: #0000FF;
+  }
+
+  .btn-sm {
+    padding: 6px 16px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+  .btn-md {
+    padding: 10px 24px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .btn-lg {
+    padding: 16px 40px;
+    font-size: 18px;
+    min-height: 56px;
+  }
+
+  button:disabled, .btn-raw:disabled {
+    background-color: #F5F5F5 !important;
+    color: #888888 !important;
+    border: 3px solid #CCCCCC !important;
+    cursor: not-allowed !important;
+    text-decoration: none !important;
+  }
+
+  /* RawBlock Cards */
+  .card-raw {
+    background-color: #FFFFFF;
+    border: 3px solid #000000;
+    padding: 24px;
+    border-radius: 0px;
+  }
+  .card-elevated {
+    background-color: #FFFFFF;
+    border: 5px solid #000000;
+    padding: 24px;
+    border-radius: 0px;
+  }
+
+  /* RawBlock Inputs */
+  .input-raw {
+    background-color: #F0F0F0;
+    color: #000000;
+    border: 3px solid #000000;
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+    border-radius: 0px;
+  }
+  .input-raw:hover:not(:disabled) {
+    background-color: #E8E8E8;
+    border: 3px solid #000000;
+  }
+  .input-raw:focus {
+    border: 5px solid #000000;
+    padding: 8px 10px; /* offset border expansion */
+  }
+  .input-raw.has-error {
+    border: 3px solid #FF0000;
+  }
+  .input-raw:disabled {
+    background-color: #F5F5F5;
+    border: 3px solid #CCCCCC;
+    color: #888888;
+    cursor: not-allowed;
+  }
+
+  .label-raw {
+    display: block;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #000000;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .helper-text {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 12px;
+    margin-top: 4px;
+    color: #555555;
+  }
+  .helper-text.error {
+    color: #FF0000;
+    font-weight: 600;
+  }
+
+  /* Status Chips */
+  .chip-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-width: 2px;
+    border-style: solid;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 10px;
+    background-color: #FFFFFF;
+  }
+  .chip-success {
+    @apply chip-status;
+    color: #008000;
+    border-color: #008000;
+  }
+  .chip-warning {
+    @apply chip-status;
+    color: #FFA500;
+    border-color: #FFA500;
+  }
+  .chip-error {
+    @apply chip-status;
+    color: #FF0000;
+    border-color: #FF0000;
+  }
+  .chip-default {
+    @apply chip-status;
+    color: #000000;
+    border-color: #000000;
+  }
+}
