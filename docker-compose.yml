@@ -1,0 +1,65 @@
+
+
+services:
+  # Service 1: Database MySQL
+  db:
+    image: mysql:8.0
+    container_name: beresbayar_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: beresbayar
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: beresuser
+      MYSQL_PASSWORD: berespassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - beresbayar_network
+
+  # Service 2: Backend Laravel
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: beresbayar_backend
+    restart: always
+    environment:
+      APP_NAME: BeresBayar
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: beresbayar
+      DB_USERNAME: beresuser
+      DB_PASSWORD: berespassword
+    ports:
+      - "8000:9000"
+    depends_on:
+      - db
+    networks:
+      - beresbayar_network
+
+  # Service 3: Frontend Vue 3 + Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: beresbayar_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - beresbayar_network
+
+volumes:
+  db_data:
+
+networks:
+  beresbayar_network:
+    driver: bridge
