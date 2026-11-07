@@ -2,7 +2,11 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillController;
+use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
+
+// Health check route
+Route::get('/health', [HealthController::class, 'check']);
 
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);

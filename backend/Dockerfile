@@ -35,5 +35,6 @@ RUN composer dump-autoload --optimize
 # Set hak akses folder storage dan cache
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-EXPOSE 9000
-CMD ["php-fpm"]
+EXPOSE 8000 9000
+
+CMD ["sh", "-c", "php-fpm -D && php artisan serve --host=0.0.0.0 --port=8000"]
