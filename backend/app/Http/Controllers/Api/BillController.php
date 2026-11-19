@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class BillController extends Controller
 {
@@ -26,7 +29,7 @@ class BillController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'nama_tagihan' => 'required|string|max:255',
             'kategori' => 'required|string|max:255',
             'jumlah' => 'required|numeric|min:0',
@@ -35,12 +38,44 @@ class BillController extends Controller
             'catatan' => 'nullable|string',
         ]);
 
-        $bill = $request->user()->bills()->create($validated);
+        if ($validator->fails()) {
+            Log::warning('Validasi penyimpanan tagihan baru gagal', [
+                'user' => $request->user()?->id ?? 'guest',
+                'aksi' => 'simpan_tagihan',
+                'sebab' => 'Field input tagihan tidak valid: ' . implode(', ', array_keys($validator->errors()->toArray())),
+                'invalid_fields' => array_keys($validator->errors()->toArray()),
+            ]);
 
-        return response()->json([
-            'message' => 'Tagihan berhasil dibuat',
-            'data' => $bill,
-        ], 201);
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $bill = $request->user()->bills()->create($validator->validated());
+
+            Log::info('Data tagihan baru berhasil disimpan', [
+                'user' => $request->user()->id,
+                'aksi' => 'simpan_tagihan',
+                'sebab' => 'Tagihan ID ' . $bill->id . ' (' . $bill->nama_tagihan . ') berhasil ditambahkan ke database',
+            ]);
+
+            return response()->json([
+                'message' => 'Tagihan berhasil dibuat',
+                'data' => $bill,
+            ], 201);
+        } catch (Throwable $e) {
+            Log::error('Gagal menyimpan tagihan ke basis data', [
+                'user' => $request->user()?->id ?? 'guest',
+                'aksi' => 'simpan_tagihan',
+                'sebab' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan sistem atau gangguan koneksi basis data.',
+            ], 500);
+        }
     }
 
     /**
@@ -70,12 +105,18 @@ class BillController extends Controller
         $bill = $request->user()->bills()->find($id);
 
         if (!$bill) {
+            Log::warning('Upaya pembaruan tagihan tidak ditemukan', [
+                'user' => $request->user()->id,
+                'aksi' => 'update_tagihan',
+                'sebab' => 'Tagihan dengan ID ' . $id . ' tidak ditemukan atau bukan milik pengguna',
+            ]);
+
             return response()->json([
                 'message' => 'Tagihan tidak ditemukan',
             ], 404);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'nama_tagihan' => 'sometimes|required|string|max:255',
             'kategori' => 'sometimes|required|string|max:255',
             'jumlah' => 'sometimes|required|numeric|min:0',
@@ -84,12 +125,44 @@ class BillController extends Controller
             'catatan' => 'nullable|string',
         ]);
 
-        $bill->update($validated);
+        if ($validator->fails()) {
+            Log::warning('Validasi pembaruan tagihan gagal', [
+                'user' => $request->user()->id,
+                'aksi' => 'update_tagihan',
+                'sebab' => 'Field input perbaruan tidak valid: ' . implode(', ', array_keys($validator->errors()->toArray())),
+                'invalid_fields' => array_keys($validator->errors()->toArray()),
+            ]);
 
-        return response()->json([
-            'message' => 'Tagihan berhasil diperbarui',
-            'data' => $bill,
-        ], 200);
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $bill->update($validator->validated());
+
+            Log::info('Data tagihan berhasil diperbarui', [
+                'user' => $request->user()->id,
+                'aksi' => 'update_tagihan',
+                'sebab' => 'Perubahan tagihan ID ' . $bill->id . ' berhasil disimpan ke basis data',
+            ]);
+
+            return response()->json([
+                'message' => 'Tagihan berhasil diperbarui',
+                'data' => $bill,
+            ], 200);
+        } catch (Throwable $e) {
+            Log::error('Gagal memperbarui tagihan ke basis data', [
+                'user' => $request->user()->id,
+                'aksi' => 'update_tagihan',
+                'sebab' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan sistem atau gangguan koneksi basis data.',
+            ], 500);
+        }
     }
 
     /**
@@ -100,15 +173,40 @@ class BillController extends Controller
         $bill = $request->user()->bills()->find($id);
 
         if (!$bill) {
+            Log::warning('Upaya penghapusan tagihan tidak ditemukan', [
+                'user' => $request->user()->id,
+                'aksi' => 'hapus_tagihan',
+                'sebab' => 'Tagihan dengan ID ' . $id . ' tidak ditemukan atau bukan milik pengguna',
+            ]);
+
             return response()->json([
                 'message' => 'Tagihan tidak ditemukan',
             ], 404);
         }
 
-        $bill->delete();
+        try {
+            $billId = $bill->id;
+            $bill->delete();
 
-        return response()->json([
-            'message' => 'Tagihan berhasil dihapus',
-        ], 200);
+            Log::info('Data tagihan berhasil dihapus', [
+                'user' => $request->user()->id,
+                'aksi' => 'hapus_tagihan',
+                'sebab' => 'Tagihan ID ' . $billId . ' berhasil dihapus dari basis data',
+            ]);
+
+            return response()->json([
+                'message' => 'Tagihan berhasil dihapus',
+            ], 200);
+        } catch (Throwable $e) {
+            Log::error('Gagal menghapus tagihan dari basis data', [
+                'user' => $request->user()->id,
+                'aksi' => 'hapus_tagihan',
+                'sebab' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan sistem saat menghapus tagihan.',
+            ], 500);
+        }
     }
 }

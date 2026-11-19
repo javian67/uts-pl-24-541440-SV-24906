@@ -13,3 +13,13 @@ frontend/dist/
 .idea/
 *.log
 rawblock-DESIGN.md
+
+# Reports & LaTeX Files
+*.pdf
+*.tex
+*.aux
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
