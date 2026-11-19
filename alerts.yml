@@ -1,0 +1,12 @@
+groups:
+  - name: BeresBayarMonitoringAlerts
+    rules:
+      - alert: ServiceInstanceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Layanan {{ $labels.job }} ({{ $labels.instance }}) tidak merespons (DOWN)"
+          description: "Target pemantauan {{ $labels.job }} pada alamat {{ $labels.instance }} terdeteksi mati selama lebih dari 30 detik."
+          action: "TINDAKAN PERTAMA: Segera periksa status kontainer melalui terminal host dengan perintah 'docker compose ps'. Periksa catatan log error kontainer yang bermasalah menggunakan 'docker compose logs {{ $labels.job }}', lalu lakukan restart layanan dengan perintah 'docker compose restart {{ $labels.job }}'."

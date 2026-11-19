@@ -1,4 +1,8 @@
 services:
+  # ==============================================================================
+  # SERVICE UTAMA APLIKASI (BERESBAYAR STACK)
+  # ==============================================================================
+
   # Service 1: Database MySQL
   db:
     image: mysql:8.0
@@ -80,10 +84,112 @@ services:
     networks:
       - beresbayar_network
 
+  # ==============================================================================
+  # SERVICE PEMANTAUAN & OBSERVABILITAS (MONITORING STACK)
+  # ==============================================================================
+
+  # Service 4: Prometheus (Time-Series Metric Aggregator & Alerting Engine)
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: beresbayar_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - beresbayar_network
+
+  # Service 5: Grafana (Interactive Metrics Dashboard & Visualization)
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: beresbayar_grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - prometheus
+    networks:
+      - beresbayar_network
+
+  # Service 6: cAdvisor (Container Resource Usage & Performance Exporter)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: beresbayar_cadvisor
+    restart: always
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - beresbayar_network
+
+  # Service 7: Node Exporter (Host Hardware & OS Metrics Exporter)
+  node-exporter:
+    image: prom/node-exporter:v1.8.0
+    container_name: beresbayar_node_exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - beresbayar_network
+
 volumes:
   db_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   beresbayar_network:
     driver: bridge
-
